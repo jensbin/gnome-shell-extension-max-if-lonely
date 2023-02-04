@@ -1,0 +1,11 @@
+{
+  "name": "Max if lonely",
+  "version": "1.0.0",
+  "description": "Maximize window on empty workspace.",
+  "url": "https://github.com/jensbin/gnome-shell-extension-max-if-empty",
+  "uuid": "gnome-shell-extension-max-if-lonely@jensbin.github.com",
+  "shell-version": [
+    "43",
+    "42"
+  ]
+}
