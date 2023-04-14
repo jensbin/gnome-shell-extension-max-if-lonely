@@ -5,6 +5,7 @@
   "url": "https://github.com/jensbin/gnome-shell-extension-max-if-empty",
   "uuid": "gnome-shell-extension-max-if-lonely@jensbin.github.com",
   "shell-version": [
+    "44",
     "43",
     "42"
   ]
