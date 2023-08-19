@@ -16,12 +16,18 @@ function enable() {
     //let display = win.get_workspace().get_display().get_size()
     //let displayratio = display.width/display.height
 
-    if (win.can_maximize() && w.length == 0 && win.get_role() != 'pop-up') {
-      win.maximize(Meta.MaximizeFlags.BOTH)
+    if  (w.length == 0) {
+      if (win.get_maximized()) {
+        win.unmaximize(Meta.MaximizeFlags.BOTH);
+      }
+
+      if (win.can_maximize() && win.get_role() != 'pop-up') {
+        win.maximize(Meta.MaximizeFlags.BOTH)
     //} else if (win.maximized_vertically) {
-    //    win.unmaximize(Meta.MaximizeFlags.VERTICAL)
+        //win.maximize(Meta.MaximizeFlags.VERTICAL)
     //} else if (win.maximized_horizontally) {
-    //    win.unmaximize(Meta.MaximizeFlags.HORIZONTAL)
+        //win.maximize(Meta.MaximizeFlags.HORIZONTAL)
+      }
     } else {
       // Workaround for dialogs that were previously maximized by
       // us (when we did not check for can_maximize yet) and
