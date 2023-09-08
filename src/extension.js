@@ -40,6 +40,7 @@ function enable() {
 						//win.move_frame(true, space.x + Math.trunc(space.width / 2), space.y);
 						//win.move_resize_frame(true, space.x + Math.trunc(space.width / 2), space.y, Math.trunc(space.width / 2), space.height );
 						//win.maximize(Meta.MaximizeFlags.HORIZONTAL);
+						win.move_frame(true, space.x, space.y);
 						win.maximize(Meta.MaximizeFlags.BOTH);
 					} else {
 						if (isPortrait) {
