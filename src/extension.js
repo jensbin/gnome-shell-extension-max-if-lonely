@@ -17,6 +17,7 @@ function enable() {
 					w !== win &&
 					!w.is_always_on_all_workspaces() &&
 					!w.minimized &&
+					w.get_role() !== "pop-up" &&
 					win.get_monitor() === w.get_monitor(),
 			);
 		const act = win.get_compositor_private();
@@ -43,7 +44,7 @@ function enable() {
 						win.move_frame(true, space.x, space.y);
 						win.maximize(Meta.MaximizeFlags.BOTH);
 					} else {
-						if (isPortrait) {
+						if (!isPortrait) {
 							if (w.length === 0) {
 								win.move_frame(true, space.x, space.y);
 								win.move_resize_frame(
@@ -67,7 +68,7 @@ function enable() {
 									space.height,
 								);
 							}
-							win.maximize(Meta.MaximizeFlags.HORIZONTAL);
+							win.maximize(Meta.MaximizeFlags.VERTICAL);
 						} else {
 							if (w.length === 0) {
 								win.move_frame(true, space.x, space.y);
@@ -79,16 +80,20 @@ function enable() {
 									Math.trunc(space.height / 2),
 								);
 							} else if (w.length === 1) {
-								win.move_frame(true, space.x, space.y);
+								win.move_frame(
+									true,
+									space.x,
+									space.y + Math.trunc(space.height / 2),
+								);
 								win.move_resize_frame(
 									true,
 									space.x,
 									space.y + Math.trunc(space.height / 2),
-									Math.trunc(space.width / 2),
-									space.height,
+									space.width,
+									Math.trunc(space.height / 2),
 								);
 							}
-							win.maximize(Meta.MaximizeFlags.VERTICAL);
+							win.maximize(Meta.MaximizeFlags.HORIZONTAL);
 							/*
 							 * x - desired x value
 							 * y - desired y value
