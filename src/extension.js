@@ -10,22 +10,20 @@ const wm_class_not_maximize = [
     "org.gnome.Settings",
     "org.gnome.clocks",
     "org.telegram.desktop",
+    "teams-for-linux",
+    "whatsapp-for-linux",
+    "gnome-calls",
     "Slack",
     "threema-web",
     "chrome-avaremotecit.cloud.com__Citrix_StoreWeb_-Default"
   ];
 
+const ASPECT_RATIO_ULTRAWIDE = 16 / 9;
+const ASPECT_RATIO_EXTRA_ULTRAWIDE = 32 / 9;
 
 export default class MaxIfLonely extends Extension {
   enable() {
     _windowCreatedId = global.display.connect("window-created", (d, win) => {
-      // Only try to maximize windows that are marked to support this.
-      // Other windows (e.g. dialogs) can often actually be maximized,
-      // but then no longer unmaximized by the user, so we really need
-      // to check this.
-      // Check if there there no other window on the workspace
-      // get_wm_class()
-      // get_title()
       const w = win
         .get_workspace()
         .list_windows()
@@ -39,95 +37,86 @@ export default class MaxIfLonely extends Extension {
         );
       const act = win.get_compositor_private();
       const id = act.connect("first-frame", (_) => {
-        //.filter(w => w !== win && !w.is_always_on_all_workspaces() && (w.get_maximized() === Meta.MaximizeFlags.BOTH) && !w.minimized && win.get_monitor() == w.get_monitor());
-        //
-        //https://github.com/Fmstrat/wintile/blob/master/extension.js
         const space = global.workspace_manager
           .get_active_workspace()
           .get_work_area_for_monitor(win.get_monitor());
         const isPortrait = space.width < space.height;
-        const isNotUltrawide =
-          space.height / space.width < 1.9 && space.width / space.height < 1.9;
 
-        if (w.length === 0 || (w.length === 1 && !isNotUltrawide)) {
+        const aspectRatio = space.width / space.height;
+        const isUltrawide = aspectRatio > ASPECT_RATIO_ULTRAWIDE;
+        const isExtraUltrawide = aspectRatio > ASPECT_RATIO_EXTRA_ULTRAWIDE;
+
+        if (w.length === 0 || (w.length === 1 && (isUltrawide || isExtraUltrawide)) || (w.length === 2 && isExtraUltrawide)) {
           if (win.can_maximize() && wm_class_not_maximize.indexOf(win.get_wm_class()) === -1) {
-            // let ws = global.workspace_manager.get_workspace_by_index(0);
-            // let area = ws.get_work_area_for_monitor(0);
-
-            if (isNotUltrawide) {
-              //win.move_frame(true, space.x + Math.trunc(space.width / 2), space.y);
-              //win.move_resize_frame(true, space.x + Math.trunc(space.width / 2), space.y, Math.trunc(space.width / 2), space.height );
-              //win.maximize(Meta.MaximizeFlags.HORIZONTAL);
+            if (!isUltrawide && !isExtraUltrawide) {
               win.move_frame(true, space.x, space.y);
               win.maximize(Meta.MaximizeFlags.BOTH);
             } else {
+              const windowWidth = Math.trunc(space.width / (isExtraUltrawide ? 3 : 2));
+
               if (!isPortrait) {
-                if (w.length === 0) {
-                  win.move_frame(true, space.x, space.y);
-                  win.move_resize_frame(
-                    true,
-                    space.x,
-                    space.y,
-                    Math.trunc(space.width / 2),
-                    space.height,
-                  );
-                } else if (w.length === 1) {
-                //} else if (w.length === 1 && !w.is_monitor_sized()) {
-                  win.move_frame(
-                    true,
-                    space.x + Math.trunc(space.width / 2),
-                    space.y,
-                  );
-                  win.move_resize_frame(
-                    true,
-                    space.x + Math.trunc(space.width / 2),
-                    space.y,
-                    Math.trunc(space.width / 2),
-                    space.height,
-                  );
-                }
                 win.maximize(Meta.MaximizeFlags.VERTICAL);
-              } else {
+
                 if (w.length === 0) {
                   win.move_frame(true, space.x, space.y);
                   win.move_resize_frame(
                     true,
                     space.x,
                     space.y,
-                    space.width,
-                    Math.trunc(space.height / 2),
+                    windowWidth,
+                    space.height,
                   );
                 } else if (w.length === 1) {
-                //} else if (w.length === 1 && !w.is_monitor_sized()) {
-                  win.move_frame(
-                    true,
-                    space.x,
-                    space.y + Math.trunc(space.height / 2),
-                  );
+                  // Calculate the position of the first window
+                  const firstWindow = w[0];
+                  const firstWindowRect = firstWindow.get_frame_rect();
+
+                  // Place the second window on the left if the first window is on the right half
+                  const secondWindowX = firstWindowRect.x > space.x + windowWidth / 2
+                    ? space.x
+                    : space.x + windowWidth;
+
+                  win.move_frame(true, secondWindowX, space.y);
                   win.move_resize_frame(
                     true,
-                    space.x,
-                    space.y + Math.trunc(space.height / 2),
-                    space.width,
-                    Math.trunc(space.height / 2),
+                    secondWindowX,
+                    space.y,
+                    windowWidth,
+                    space.height,
+                  );
+                } else if (w.length === 2) {
+                  // Find the empty space
+                  const firstWindow = w[0];
+                  const secondWindow = w[1];
+                  const firstWindowRect = firstWindow.get_frame_rect();
+                  const secondWindowRect = secondWindow.get_frame_rect();
+
+                  let thirdWindowX = space.x;
+
+                  if (firstWindowRect.x > space.x + windowWidth) {
+                    thirdWindowX = space.x; // Left side is empty
+                  } else if (secondWindowRect.x > firstWindowRect.x + windowWidth) {
+                    thirdWindowX = space.x + windowWidth; // Middle is empty
+                  } else {
+                    thirdWindowX = space.x + 2 * windowWidth; // Right side is empty
+                  }
+
+                  win.move_frame(true, thirdWindowX, space.y);
+                  win.move_resize_frame(
+                    true,
+                    thirdWindowX,
+                    space.y,
+                    windowWidth,
+                    space.height,
                   );
                 }
-                win.maximize(Meta.MaximizeFlags.HORIZONTAL);
-                /*
-                 * x - desired x value
-                 * y - desired y value
-                 * w - desired width
-                 * h - desired height
-                 */
-                //win.move_frame(true, x, y);
-                //win.move_resize_frame(true, x, y, w, h);
+              } else {
+                // Portrait orientation for ultrawide/extra ultrawide not implemented
+                // You can add similar logic here if needed
               }
             }
           }
         } else {
-          // Workaround for dialogs that were previously maximized by
-          // us (when we did not check for can_maximize yet) and
-          // remember their size.
           win.unmaximize(Meta.MaximizeFlags.BOTH);
         }
         win.focus(global.get_current_time());
