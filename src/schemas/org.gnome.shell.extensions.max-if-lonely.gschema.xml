@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.max-if-lonely" path="/org/gnome/shell/extensions/max-if-lonely/">
+    <key name="wm-class-not-maximize" type="as">
+      <default>['org.gnome.Calendar', 'org.gnome.Settings', 'org.gnome.clocks']</default>
+      <summary>List of window classes that should not be maximized</summary>
+      <description>Specify the window classes that should not be maximized by the extension.</description>
+    </key>
+  </schema>
+</schemalist>
